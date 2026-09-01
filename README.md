@@ -5,22 +5,23 @@ prototype foundation, not the finished submission. Everything below runs and
 passes today; extensions are tracked deliberately (see "Where this goes
 next") rather than added ad hoc.
 
-**What this claims to be, precisely:** Amy is a constrained AI recovery
-coach prototype. The LLM handles conversation and explanation; recommendation
-generation and high-risk escalation are separated into deterministic
-components. The prototype is intentionally not a clinical decision-support
-system, and does not claim clinical validation, comprehensive safety
-coverage, or regulatory compliance — see "Known limitations" below for what
-that means concretely, not just as a disclaimer.
+**What this claims to be, precisely:** a constrained AI recovery coach
+prototype for pre/post-surgical patients. The LLM handles conversation and
+explanation; recommendation generation and high-risk escalation are
+separated into deterministic components. The prototype is intentionally
+not a clinical decision-support system, and does not claim clinical
+validation, comprehensive safety coverage, or regulatory compliance — see
+"Known limitations" below for what that means concretely, not just as a
+disclaimer.
 
-Amy, the AI recovery coach for pre/post-surgical patients, built as a
-technical prototype for the Clovo challenge. Amy explains recovery
+An AI recovery coach for pre/post-surgical patients, built as a technical
+prototype for a job-application technical assessment. It explains recovery
 expectations, communicates exercise recommendations (from a mocked,
 rule-based recommendation engine), answers general prep questions, and —
 critically — recognises red-flag symptoms and escalates rather than coaching
 through them.
 
-## Cost — $0, with no paid path in this repo at all
+## Cost-optimised
 
 This project has exactly one LLM backend: a local, free model via Ollama.
 There is no Anthropic/OpenAI/paid API integration anywhere in the code —
@@ -98,15 +99,15 @@ pricing/feature details for third-party platforms like Replit, Lovable, or
 Base44, since those change often. If you explore any of them for a
 separate learning experiment (e.g. inspecting what an AI app-builder
 generates, as a way to practice critically evaluating AI-generated code),
-that's a good exercise — just keep it clearly separate from Amy's actual
-build, the same way Track A/B above keeps speculative additions separate
+that's a good exercise — just keep it clearly separate from this project's
+actual build, the same way Track A/B above keeps speculative additions separate
 from the baseline.
 
 ## Quickstart (under 5 minutes)
 
 ```bash
 git clone <this-repo>
-cd Recuro_Agent_Rehab
+cd clinical-recovery-agent
 python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 cp .env.example .env   # defaults to free local Ollama — no API key needed
@@ -156,11 +157,11 @@ reachable Ollama instance, per the caveat above.
 
 ## Architecture
 
-**One sentence:** input guardrail → Amy (LLM + tool use) → mocked
+**One sentence:** input guardrail → assistant (LLM + tool use) → mocked
 recommendation engine → output guardrail → patient.
 
 **On the recommendation boundary, stated precisely** (not the looser version):
-Amy does not generate the underlying recommendation. Recommendations
+The assistant does not generate the underlying recommendation. Recommendations
 originate from the deterministic recommendation engine and are only
 *communicated* by the LLM layer. This is enforced by the tool-use
 architecture (the LLM must call `get_recommendation` to get one at all —
@@ -182,18 +183,18 @@ Patient message
    yes           no
     │             │
     ▼             ▼
-Escalation    ┌──────────────────────┐
-message,      │  Amy (LLM layer)      │
-NO LLM call   │  system_prompt.py     │  ← scope + escalation instructions
-              │  + conversation.py    │     written explicitly, not implied
-              │  (session history)    │
-              └──────────┬────────────┘
+Escalation    ┌───────────────────────┐
+message,      │  Assistant (LLM layer) │
+NO LLM call   │  system_prompt.py      │  ← scope + escalation instructions
+              │  + conversation.py     │     written explicitly, not implied
+              │  (session history)     │
+              └──────────┬──────────────┘
                           │ tool_use?
                           ▼
               ┌──────────────────────┐
               │ Mock recommendation   │
-              │ engine (rule-based)   │   ← Amy does not generate this content —
-              │ recommendation_engine │      herself, only call it
+              │ engine (rule-based)   │   ← LLM never generates this content,
+              │ recommendation_engine │      only calls it as a tool
               │ .py                   │      (stable interface — production
               └──────────┬────────────┘       swap-in is a drop-in replace)
                           │ structured result
@@ -212,7 +213,7 @@ NO LLM call   │  system_prompt.py     │  ← scope + escalation instructions
 |---|---|---|
 | Backend services/APIs (JD essential) | Async-native, typed, self-documenting | `app/main.py` (FastAPI) |
 | LLM integration (JD essential, brief core) | Structured tool calling, not free text | `app/core/llm_client.py` |
-| Recommendation engine separation (★★ brief) | Amy communicates, never invents clinical content | `app/core/recommendation_engine.py` |
+| Recommendation engine separation (★★ brief) | Assistant communicates, never invents clinical content | `app/core/recommendation_engine.py` |
 | Scope discipline + escalation (★★ Ch.8) | Two independent layers — a prompt instruction alone isn't a guarantee | `app/core/system_prompt.py` + `app/core/guardrails.py` |
 | Evaluation of AI features (JD, separate from general testing) | Fast, deterministic, runnable live without API flakiness | `evals/golden_set.json` + `run_evals.py` |
 | Conversation state | Interface stable so Redis/DB swap doesn't touch calling code | `app/core/conversation.py` |
@@ -234,7 +235,7 @@ record *what* to build and *why*, so changes can be applied later without
 re-deriving the reasoning — and so scope stays intentional rather than
 creeping in ad hoc.
 
-### Track A — stays out of the Clovo submission on purpose
+### Track A — stays out of this submission on purpose
 LangGraph-style agentic orchestration, a vector DB, and model fine-tuning
 are all explicitly **not** going into this repo before the interview. The
 brief and Chapter 3 of the study roadmap are clear that more autonomy would
@@ -252,7 +253,7 @@ undercut the actual pitch (narrow scope was a deliberate safety choice).
    classifier") — build it, then compare precision/recall against the
    current keyword approach in `app/core/guardrails.py`.
 2. **LoRA/QLoRA fine-tuning on an open model** (Llama 3, Mistral, Phi) as a
-   general skill-builder, independent of Amy — data prep, hyperparameters,
+   general skill-builder, independent of this project — data prep, hyperparameters,
    before/after eval.
 3. **LangGraph**, tried on a separate branch, not merged into this
    submission — to move "aware of" (Chapter 6) to genuine hands-on
