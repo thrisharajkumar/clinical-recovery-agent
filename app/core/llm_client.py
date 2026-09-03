@@ -69,7 +69,7 @@ def generate_reply(history: List[dict]) -> tuple[str, bool, dict | None]:
                 "tools": _TOOLS,
                 "stream": False,
             },
-            timeout=60,
+            timeout=180,
         )
         resp.raise_for_status()
         message = resp.json().get("message", {})
